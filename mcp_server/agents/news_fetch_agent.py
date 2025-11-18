@@ -50,9 +50,73 @@ class NewsFetchAgent:
             return {"error": str(e)}
     
     async def _fetch_trending(self, category: str, limit: int) -> Dict:
-        """Fetch trending news using Google News RSS (Free, No API Key)"""
+        """Fetch trending news - Try NewsAPI first, fallback to Google News RSS"""
         try:
-            # Map categories to search queries
+            # Try NewsAPI first if key is available
+            api_key = getattr(self.config, 'NEWS_API_KEY', None) or getattr(self.config, 'GOOGLE_NEWS_API_KEY', None)
+            
+            if api_key:
+                api_key = api_key.strip('"').strip("'")
+                self.logger.info(f"📰 Fetching trending news from NewsAPI (category: {category})")
+                
+                url = "https://newsapi.org/v2/top-headlines"
+                
+                # Map category
+                if category == "all":
+                    category = "general"
+                
+                params = {
+                    "apiKey": api_key,
+                    "pageSize": limit * 2,  # Fetch more to account for ad filtering
+                    "language": "en",
+                    "country": "us",
+                    "category": category
+                }
+                
+                response = requests.get(url, params=params, timeout=10)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    if data.get("status") == "ok":
+                        raw_articles = data.get("articles", [])
+                        
+                        # Filter out advertisements
+                        articles = []
+                        ads_filtered = 0
+                        
+                        for article in raw_articles:
+                            title = article.get("title", "")
+                            description = article.get("description", "")
+                            article_url = article.get("url", "")
+                            
+                            if self._is_advertisement(title, description, article_url):
+                                ads_filtered += 1
+                                self.logger.debug(f"🚫 Filtered ad: {title}")
+                                continue
+                            
+                            articles.append(article)
+                            
+                            if len(articles) >= limit:
+                                break
+                        
+                        self.logger.info(f"✅ Got {len(articles)} articles from NewsAPI (filtered {ads_filtered} ads)")
+                        
+                        return {
+                            "articles": articles,
+                            "total": len(articles),
+                            "category": category,
+                            "source": "newsapi",
+                            "ads_filtered": ads_filtered
+                        }
+                    else:
+                        self.logger.warning(f"NewsAPI error: {data.get('message')}")
+                else:
+                    self.logger.warning(f"NewsAPI returned status {response.status_code}")
+            
+            # Fallback to Google News RSS (free, no API key needed)
+            self.logger.info(f"📰 Falling back to Google News RSS (category: {category})")
+            
             category_queries = {
                 "all": "top news",
                 "general": "top news",
@@ -66,15 +130,15 @@ class NewsFetchAgent:
             }
             
             query = category_queries.get(category, "top news")
-            
-            self.logger.info(f"📰 Fetching trending news from Google News RSS (category: {category})")
-            
-            # Use Google News RSS search
             return await self._search_news(query, limit)
             
         except Exception as e:
             self.logger.error(f"Error fetching trending news: {str(e)}")
-            return {"articles": [], "total": 0, "category": category, "source": "error"}
+            # Last resort fallback to Google News RSS
+            try:
+                return await self._search_news("top news", limit)
+            except:
+                return {"articles": [], "total": 0, "category": category, "source": "error"}
     
     async def _fetch_from_url(self, url: str) -> Dict:
         """Fetch article from URL"""
