@@ -230,6 +230,92 @@ Return ONLY the keywords separated by commas, nothing else."""
             self.logger.error(f"Error searching news: {str(e)}")
             return []
     
+    def _calculate_relevance_score(self, headline: str, article_title: str, article_description: str) -> float:
+        """Calculate how relevant an article is to the original headline (0-1)"""
+        headline_lower = headline.lower()
+        article_text = f"{article_title} {article_description}".lower()
+        
+        # Extract key terms from headline (excluding common words)
+        stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 
+                     'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'been', 'be',
+                     'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
+                     'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'now'}
+        
+        headline_words = [w for w in headline_lower.split() if w not in stop_words and len(w) > 2]
+        
+        if not headline_words:
+            return 0.5  # Default if no meaningful words
+        
+        # Count how many headline words appear in the article
+        matches = sum(1 for word in headline_words if word in article_text)
+        relevance = matches / len(headline_words)
+        
+        return relevance
+    
+    def _filter_relevant_articles(self, headline: str, articles: List[Dict], min_relevance: float = 0.3) -> List[Dict]:
+        """Filter articles to only include those relevant to the headline"""
+        relevant_articles = []
+        
+        for article in articles:
+            title = article.get('title', '')
+            description = article.get('description', '')
+            
+            relevance = self._calculate_relevance_score(headline, title, description)
+            
+            if relevance >= min_relevance:
+                article['relevance_score'] = relevance
+                relevant_articles.append(article)
+                self.logger.debug(f"✓ Relevant ({relevance:.2f}): {title[:50]}")
+            else:
+                self.logger.debug(f"✗ Filtered ({relevance:.2f}): {title[:50]}")
+        
+        self.logger.info(f"📊 Filtered {len(articles)} → {len(relevant_articles)} relevant articles")
+        return relevant_articles
+    
+    def _detect_absurd_claims(self, headline: str) -> Dict:
+        """Detect obviously fake or absurd claims using AI"""
+        if not self.use_ai:
+            return {"is_absurd": False, "reason": ""}
+        
+        try:
+            prompt = f"""Analyze this headline for absurdity or obvious falsehood:
+
+"{headline}"
+
+Is this headline:
+1. Physically impossible or violates laws of nature?
+2. Absurd or satirical (like from The Onion)?
+3. Contains obvious contradictions?
+4. Makes extraordinary claims that would be major world news if true?
+
+Respond in this format:
+ABSURD: yes/no
+REASON: [brief explanation if absurd]
+CONFIDENCE: high/medium/low"""
+
+            response = self.model.generate_content(prompt)
+            result_text = response.text.lower()
+            
+            is_absurd = 'absurd: yes' in result_text
+            
+            # Extract reason
+            reason = ""
+            for line in result_text.split('\n'):
+                if line.startswith('reason:'):
+                    reason = line.split(':', 1)[1].strip()
+                    break
+            
+            if is_absurd:
+                self.logger.warning(f"🚨 Absurd claim detected: {reason}")
+            
+            return {
+                "is_absurd": is_absurd,
+                "reason": reason
+            }
+        except Exception as e:
+            self.logger.error(f"Absurdity detection failed: {e}")
+            return {"is_absurd": False, "reason": ""}
+    
     async def execute(self, payload: Dict) -> Dict:
         """Execute deep analysis on a headline or topic"""
         try:
@@ -240,20 +326,75 @@ Return ONLY the keywords separated by commas, nothing else."""
             
             self.logger.info(f"🔍 Deep Analysis: {headline}")
             
-            # Step 1: Search for related news
-            articles = await self.search_news(headline, limit=10)
+            # Step 1: Check for absurd claims
+            absurdity_check = self._detect_absurd_claims(headline)
             
-            # Step 2: Calculate source-based credibility score
-            source_analysis = self._calculate_source_score(articles)
+            if absurdity_check["is_absurd"]:
+                return {
+                    "headline": headline,
+                    "summary": f"This headline appears to be fake or satirical. {absurdity_check['reason']}",
+                    "key_points": [
+                        "Headline contains absurd or impossible claims",
+                        absurdity_check['reason'],
+                        "No credible sources found supporting this claim"
+                    ],
+                    "verification_score": 5,
+                    "verdict": "Likely Fake/Satirical",
+                    "source_analysis": {
+                        "score": 5,
+                        "verdict": "Likely Fake/Satirical",
+                        "reason": "Headline contains absurd or impossible claims",
+                        "source_count": 0,
+                        "high_quality_sources": 0,
+                        "medium_quality_sources": 0
+                    },
+                    "related_news": [],
+                    "keywords_used": self._extract_keywords(headline),
+                    "absurdity_detected": True
+                }
             
-            # Step 3: Generate AI summary if articles found
+            # Step 2: Search for related news
+            articles = await self.search_news(headline, limit=15)
+            
+            # Step 3: Filter for relevance
+            relevant_articles = self._filter_relevant_articles(headline, articles, min_relevance=0.3)
+            
+            # If no relevant articles found, lower the score significantly
+            if len(relevant_articles) == 0 and len(articles) > 0:
+                self.logger.warning(f"⚠️ Found {len(articles)} articles but none are relevant to the headline")
+                return {
+                    "headline": headline,
+                    "summary": "No credible sources found covering this specific topic. The headline may be fake, satirical, or highly unusual.",
+                    "key_points": [
+                        "No relevant news articles found",
+                        "Search returned unrelated results",
+                        "Likely fake news or satire"
+                    ],
+                    "verification_score": 5,
+                    "verdict": "Unverifiable - No Relevant Sources",
+                    "source_analysis": {
+                        "score": 5,
+                        "verdict": "Unverifiable - No Relevant Sources",
+                        "reason": f"Found {len(articles)} articles but none match the headline topic",
+                        "source_count": 0,
+                        "high_quality_sources": 0,
+                        "medium_quality_sources": 0
+                    },
+                    "related_news": [],
+                    "keywords_used": self._extract_keywords(headline)
+                }
+            
+            # Step 4: Calculate source-based credibility score
+            source_analysis = self._calculate_source_score(relevant_articles)
+            
+            # Step 5: Generate AI summary if articles found
             summary = ""
             key_points = []
             
-            if articles and self.use_ai:
+            if relevant_articles and self.use_ai:
                 combined_text = '\n\n'.join([
                     f"{article['title']}\n{article.get('description', '')}"
-                    for article in articles[:5]
+                    for article in relevant_articles[:5]
                 ])
                 
                 prompt = f"""Analyze these news articles about: {headline}
@@ -297,18 +438,18 @@ ASSESSMENT: [assessment]"""
                     self.logger.info("✅ AI summary generated")
                 except Exception as e:
                     self.logger.error(f"AI summary failed: {e}")
-                    summary = f"Found {len(articles)} news articles covering this topic from various sources."
+                    summary = f"Found {len(relevant_articles)} news articles covering this topic from various sources."
             else:
-                summary = f"Found {len(articles)} news articles covering this topic."
+                summary = f"Found {len(relevant_articles)} news articles covering this topic."
             
             return {
                 "headline": headline,
                 "summary": summary,
-                "key_points": key_points or [f"Found {len(articles)} related articles"],
+                "key_points": key_points or [f"Found {len(relevant_articles)} related articles"],
                 "verification_score": source_analysis["score"],
                 "verdict": source_analysis["verdict"],
                 "source_analysis": source_analysis,
-                "related_news": articles,
+                "related_news": relevant_articles[:10],  # Return top 10 most relevant
                 "keywords_used": self._extract_keywords(headline)
             }
             
