@@ -31,7 +31,7 @@ const Dashboard = () => {
         <div className="header-content">
           <div className="logo">
             <CheckCircle size={32} />
-            <h1>AI News Verification</h1>
+            <h1>FACT-X</h1>
           </div>
           <p className="tagline">Real-time news verification powered by AI</p>
           <MarketRates />
