@@ -169,7 +169,6 @@ class NewsFetchAgent:
                 "total": len(final_articles),
                 "category": category,
                 "source": "+".join(sources_used),
-                "ads_filtered": total_ads_filtered
             }
             
         except Exception as e:
