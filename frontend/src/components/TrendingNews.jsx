@@ -36,17 +36,23 @@ const TrendingNews = () => {
     setLoading(true)
     try {
       const response = await api.fetchNews({ category: selectedCategory, limit: 100 })
-      const cleanedArticles = (response.articles || []).map(article => ({
-        ...article,
-        title: stripHtml(article.title),
-        description: stripHtml(article.description)
-      }))
+      console.log('📰 News response:', response)
+      
+      const cleanedArticles = (response.articles || []).map(article => {
+        console.log('🖼️ Article image:', article.urlToImage)
+        return {
+          ...article,
+          title: stripHtml(article.title),
+          description: stripHtml(article.description)
+        }
+      })
       
       // Shuffle and take random 12 articles
       const shuffled = shuffleArray(cleanedArticles)
       setNews(shuffled.slice(0, 12))
+      console.log('✅ Loaded', shuffled.slice(0, 12).length, 'articles')
     } catch (error) {
-      console.error('Error fetching news:', error)
+      console.error('❌ Error fetching news:', error)
     } finally {
       setLoading(false)
     }
@@ -116,7 +122,14 @@ const TrendingNews = () => {
           <div key={index} className="news-card">
             {article.urlToImage && (
               <div className="news-image">
-                <img src={article.urlToImage} alt={article.title} />
+                <img 
+                  src={article.urlToImage} 
+                  alt={article.title}
+                  onError={(e) => {
+                    e.target.style.display = 'none'
+                    e.target.parentElement.style.display = 'none'
+                  }}
+                />
                 <div className="news-badge">
                   <TrendingUp size={16} />
                   Trending
