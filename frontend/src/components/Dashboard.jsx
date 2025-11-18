@@ -33,7 +33,7 @@ const Dashboard = () => {
             <CheckCircle size={32} />
             <h1>FACT-X</h1>
           </div>
-          <p className="tagline">Real-time news verification powered by AI</p>
+          <p className="tagline">AI-Powered Truth Discovery & News Intelligence</p>
           <MarketRates />
         </div>
       </header>
