@@ -40,10 +40,11 @@ const MapSearch = ({ onResults, setLoading, setError }) => {
   const [position, setPosition] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [keyword, setKeyword] = useState('')
-  const [radius, setRadius] = useState(25)
   const [newsMarkers, setNewsMarkers] = useState([])
   const [categorizedNews, setCategorizedNews] = useState({})
   const mapRef = useRef()
+  
+  const radius = 50 // Fixed radius of 50km
 
   useEffect(() => {
     // Get user's current location
@@ -155,7 +156,7 @@ const MapSearch = ({ onResults, setLoading, setError }) => {
         <div className="control-header">
           <MapPin size={24} />
           <h3>Location-Based News</h3>
-          <p>Click on the map or search for a location to find news within {radius}km</p>
+          <p>Click on the map or search for a location to find local news</p>
         </div>
 
         <form onSubmit={handleSearch} className="search-form">
@@ -179,18 +180,6 @@ const MapSearch = ({ onResults, setLoading, setError }) => {
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="e.g., Chennai, Sports..."
             className="keyword-input"
-          />
-        </div>
-
-        <div className="radius-control">
-          <label>Search Radius: {radius} km</label>
-          <input
-            type="range"
-            min="5"
-            max="100"
-            value={radius}
-            onChange={(e) => setRadius(parseInt(e.target.value))}
-            className="radius-slider"
           />
         </div>
 

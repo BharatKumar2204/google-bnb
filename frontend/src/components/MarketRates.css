@@ -1,0 +1,70 @@
+.market-rates {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 8px 15px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 0.9em;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+}
+
+.market-rates.loading {
+    color: #888;
+}
+
+.market-rates.error {
+    color: #ff6b6b;
+}
+
+.market-rates .rate-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.market-rates .label {
+    font-weight: bold;
+    color: #f0f0f0;
+}
+
+.market-rates .price {
+    color: #4CAF50; /* Green for prices */
+    font-weight: 600;
+}
+
+.market-rates .gold .price {
+    color: #FFD700; /* Gold color */
+}
+
+.market-rates .silver .price {
+    color: #C0C0C0; /* Silver color */
+}
+
+.market-rates .refresh-btn {
+    background: none;
+    border: none;
+    color: #e0e0e0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.market-rates .refresh-btn:hover {
+    background-color: #3a3a3a;
+}
+
+.market-rates .spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

@@ -20,6 +20,8 @@ const ResultsPanel = ({ results }) => {
     return <XCircle size={24} color="#ef4444" />
   }
 
+  const news = results.news || results.related_news || []
+
   return (
     <div className="results-panel">
       <div className="results-header">
@@ -77,6 +79,32 @@ const ResultsPanel = ({ results }) => {
               <li key={idx}>{point}</li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* Related News */}
+      {news.length > 0 && (
+        <div className="related-news-section">
+          <h4>Related News Articles ({news.length})</h4>
+          <div className="news-grid">
+            {news.map((article, idx) => (
+              <div key={idx} className="news-card" onClick={() => window.open(article.url, '_blank')}>
+                {article.urlToImage && (
+                  <img src={article.urlToImage} alt={article.title} className="news-image" />
+                )}
+                <div className="news-content">
+                  <h5 className="news-title">{article.title}</h5>
+                  <p className="news-description">{article.description}</p>
+                  <div className="news-meta">
+                    <span className="news-source">{article.source?.name || 'Unknown'}</span>
+                    <span className="news-date">
+                      {new Date(article.publishedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -155,29 +183,6 @@ const ResultsPanel = ({ results }) => {
             {results.relevance && (
               <p className="relevance">{results.relevance}</p>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* News Articles */}
-      {results.news && results.news.length > 0 && (
-        <div className="result-card">
-          <div className="card-header">
-            <TrendingUp size={20} />
-            <h4>Related News ({results.news.length})</h4>
-          </div>
-          <div className="news-list">
-            {results.news.map((article, idx) => (
-              <div key={idx} className="news-item">
-                <h5>{article.title}</h5>
-                <p>{article.description}</p>
-                {article.url && (
-                  <a href={article.url} target="_blank" rel="noopener noreferrer">
-                    Read more →
-                  </a>
-                )}
-              </div>
-            ))}
           </div>
         </div>
       )}

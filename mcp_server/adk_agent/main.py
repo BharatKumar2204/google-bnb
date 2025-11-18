@@ -27,6 +27,7 @@ from agents.summary_context_agent import SummaryContextAgent
 from agents.map_intelligence_agent import MapIntelligenceAgent
 from agents.media_forensics_agent import MediaForensicsAgent
 from agents.impact_relevance_agent import ImpactRelevanceAgent
+from agents.metal_prices_agent import MetalPricesAgent # Import new agent
 
 # Import Google ADK Agents
 from adk_agent.root_agent import RootAgent
@@ -96,6 +97,7 @@ class AgentOrchestrator:
             "map_intel": MapIntelligenceAgent(config, gcp_clients),
             "media_forensics": MediaForensicsAgent(config, gcp_clients),
             "impact": ImpactRelevanceAgent(config, gcp_clients),
+            "metal_prices": MetalPricesAgent(config, gcp_clients), # Initialize new agent
         }
         
         logger.info("✅ All 6 agents initialized")
@@ -256,6 +258,15 @@ async def agent_impact(request: Request):
     try:
         payload = await request.json()
         result = await orchestrator.agents["impact"].execute(payload)
+        return format_response("success", result)
+    except Exception as e:
+        return format_response("error", {"message": str(e)}, error=True)
+
+@app.get("/agents/metal_prices")
+async def agent_metal_prices():
+    """Agent 7: Metal Prices"""
+    try:
+        result = await orchestrator.agents["metal_prices"].execute({})
         return format_response("success", result)
     except Exception as e:
         return format_response("error", {"message": str(e)}, error=True)

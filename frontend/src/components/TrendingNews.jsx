@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { TrendingUp, Clock, MapPin, ExternalLink, Loader } from 'lucide-react'
+import { TrendingUp, Clock, MapPin, ExternalLink, Loader, RefreshCw } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import api from '../services/api'
 import './TrendingNews.css'
@@ -15,11 +15,35 @@ const TrendingNews = () => {
     fetchTrendingNews()
   }, [selectedCategory])
 
+  const stripHtml = (html) => {
+    if (!html) return ''
+    const tmp = document.createElement('DIV')
+    tmp.innerHTML = html
+    return tmp.textContent || tmp.innerText || ''
+  }
+
+  const shuffleArray = (array) => {
+    const shuffled = [...array]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled
+  }
+
   const fetchTrendingNews = async () => {
     setLoading(true)
     try {
-      const response = await api.fetchNews({ category: selectedCategory })
-      setNews(response.articles || [])
+      const response = await api.fetchNews({ category: selectedCategory, limit: 100 })
+      const cleanedArticles = (response.articles || []).map(article => ({
+        ...article,
+        title: stripHtml(article.title),
+        description: stripHtml(article.description)
+      }))
+      
+      // Shuffle and take random 12 articles
+      const shuffled = shuffleArray(cleanedArticles)
+      setNews(shuffled.slice(0, 12))
     } catch (error) {
       console.error('Error fetching news:', error)
     } finally {
@@ -62,6 +86,9 @@ const TrendingNews = () => {
               {cat.charAt(0).toUpperCase() + cat.slice(1)}
             </button>
           ))}
+          <button className="refresh-btn" onClick={fetchTrendingNews}>
+            <RefreshCw size={16} />
+          </button>
         </div>
       </div>
 
@@ -101,22 +128,20 @@ const TrendingNews = () => {
                 >
                   Verify
                 </button>
-                <a 
-                  href={article.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
+                <button 
                   className="btn-read"
+                  onClick={() => window.open(article.url, '_blank')}
                 >
                   <span>Read More</span>
                   <ExternalLink size={16} />
-                </a>
+                </button>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {news.length === 0 && (
+      {news.length === 0 && ( // This line contains a typo that will be introduced by the replace operation.
         <div className="no-news">
           <p>No trending news available at the moment</p>
         </div>

@@ -19,16 +19,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-USER appuser
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8080
 
-# Expose port 8080 (Cloud Run default)
+# Expose port
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8080/health')"
-
 # Run the application
-CMD ["python", "run_server.py"]
+CMD exec uvicorn adk_agent.main:app --host 0.0.0.0 --port ${PORT}

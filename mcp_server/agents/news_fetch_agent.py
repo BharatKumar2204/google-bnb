@@ -15,6 +15,8 @@ class NewsFetchAgent:
         self.config = config
         self.gcp_clients = gcp_clients
         self.logger = logging.getLogger("agent.news_fetch")
+        self.cache = {} # Add a cache dictionary
+        self.cache_expiry_time = timedelta(seconds=1) # Cache for 1 second for testing
         
     async def execute(self, payload: Dict) -> Dict:
         """Fetch news based on parameters"""
@@ -29,7 +31,19 @@ class NewsFetchAgent:
             elif query:
                 return await self._search_news(query, limit)
             else:
-                return await self._fetch_trending(category, limit)
+                # Check cache before fetching trending news
+                cache_key = f"trending_{category}_{limit}"
+                if cache_key in self.cache and datetime.now() < self.cache[cache_key]["expiry"]:
+                    self.logger.info(f"✅ Serving trending news from cache for category: {category}")
+                    return self.cache[cache_key]["data"]
+                
+                # Fetch and then store in cache
+                news_data = await self._fetch_trending(category, limit)
+                self.cache[cache_key] = {
+                    "data": news_data,
+                    "expiry": datetime.now() + self.cache_expiry_time
+                }
+                return news_data
                 
         except Exception as e:
             self.logger.error(f"Error: {str(e)}")
@@ -38,37 +52,42 @@ class NewsFetchAgent:
     async def _fetch_trending(self, category: str, limit: int) -> Dict:
         """Fetch trending news"""
         try:
+            if category == "world":
+                return await self._search_news("world news", limit)
+
             # Use NewsAPI - try both possible env var names
             api_key = self.config.NEWS_API_KEY or self.config.GOOGLE_NEWS_API_KEY
             
             if not api_key:
-                self.logger.warning("⚠️ No NewsAPI key found, using mock data")
-                return self._get_mock_news(category, limit)
+                self.logger.warning("⚠️ No NewsAPI key found, returning empty list.")
+                return {"articles": [], "total": 0, "category": category, "source": "error"}
             
             self.logger.info(f"📰 Fetching real news from NewsAPI (category: {category})")
             
             url = "https://newsapi.org/v2/top-headlines"
+            
+            if category == "all":
+                category = "general"
+
             params = {
                 "apiKey": api_key,
                 "pageSize": limit,
                 "language": "en",
-                "country": "us"  # Add country for better results
+                "country": "us",  # Add country for better results
+                "category": category
             }
-            
-            if category != "all":
-                params["category"] = category
             
             response = requests.get(url, params=params, timeout=10)
             
             if response.status_code != 200:
                 self.logger.error(f"NewsAPI error: {response.status_code} - {response.text}")
-                return self._get_mock_news(category, limit)
+                return {"articles": [], "total": 0, "category": category, "source": "error"}
             
             data = response.json()
             
             if data.get("status") != "ok":
                 self.logger.error(f"NewsAPI returned error: {data.get('message')}")
-                return self._get_mock_news(category, limit)
+                return {"articles": [], "total": 0, "category": category, "source": "error"}
             
             articles = data.get("articles", [])
             self.logger.info(f"✅ Got {len(articles)} real articles from NewsAPI")
@@ -82,7 +101,7 @@ class NewsFetchAgent:
             
         except Exception as e:
             self.logger.error(f"Error fetching news: {str(e)}")
-            return self._get_mock_news(category, limit)
+            return {"articles": [], "total": 0, "category": category, "source": "error"}
     
     async def _fetch_from_url(self, url: str) -> Dict:
         """Fetch article from URL"""
@@ -206,38 +225,4 @@ class NewsFetchAgent:
     
     def _get_mock_news(self, category: str, limit: int) -> Dict:
         """Return mock news for demo"""
-        self.logger.warning("⚠️ Returning mock data - API key may be invalid or missing")
-        articles = [
-            {
-                "title": "AI Breakthrough in Medical Diagnosis",
-                "description": "New AI system achieves 95% accuracy in early cancer detection",
-                "url": "https://example.com/ai-medical",
-                "urlToImage": "https://via.placeholder.com/400x200",
-                "publishedAt": datetime.now().isoformat(),
-                "source": {"name": "Tech Health"}
-            },
-            {
-                "title": "Climate Summit Reaches Historic Agreement",
-                "description": "World leaders commit to ambitious carbon reduction targets",
-                "url": "https://example.com/climate",
-                "urlToImage": "https://via.placeholder.com/400x200",
-                "publishedAt": (datetime.now() - timedelta(hours=2)).isoformat(),
-                "source": {"name": "Global News"}
-            },
-            {
-                "title": "Space Mission Discovers New Exoplanet",
-                "description": "Potentially habitable planet found 100 light-years away",
-                "url": "https://example.com/space",
-                "urlToImage": "https://via.placeholder.com/400x200",
-                "publishedAt": (datetime.now() - timedelta(hours=5)).isoformat(),
-                "source": {"name": "Space Today"}
-            }
-        ]
-        
-        return {
-            "articles": articles[:limit],
-            "total": len(articles),
-            "category": category,
-            "source": "mock",  # Mark as mock data
-            "mock": True
-        }
+        pass

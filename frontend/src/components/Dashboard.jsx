@@ -5,9 +5,10 @@ import {
 } from 'lucide-react'
 import TrendingNews from './TrendingNews'
 import MapSearch from './MapSearch'
-import InputPanel from './InputPanel'
+import DeepAnalysis from './DeepAnalysis'
+import UrlAnalysis from './UrlAnalysis'
 import ResultsPanel from './ResultsPanel'
-import QuickSummary from './QuickSummary'
+import MarketRates from './MarketRates'
 import './Dashboard.css'
 
 const Dashboard = () => {
@@ -18,8 +19,7 @@ const Dashboard = () => {
 
   const tabs = [
     { id: 'trending', label: 'Trending News', icon: TrendingUp },
-    { id: 'summary', label: 'Quick Summary', icon: Sparkles },
-    { id: 'text', label: 'Text Analysis', icon: FileText },
+    { id: 'deep-analysis', label: 'Deep Analysis', icon: Sparkles },
     { id: 'url', label: 'URL Verification', icon: LinkIcon },
     { id: 'map', label: 'Location News', icon: MapPin }
   ]
@@ -34,6 +34,7 @@ const Dashboard = () => {
             <h1>AI News Verification</h1>
           </div>
           <p className="tagline">Real-time news verification powered by AI</p>
+          <MarketRates />
         </div>
       </header>
 
@@ -67,29 +68,23 @@ const Dashboard = () => {
             <TrendingNews />
           )}
 
-          {activeTab === 'summary' && (
-            <QuickSummary />
-          )}
-
-          {activeTab === 'text' && (
-            <div className="panel-wrapper">
-              <InputPanel
-                type="text"
-                onSubmit={setResults}
+          {activeTab === 'deep-analysis' && (
+            <>
+              <DeepAnalysis
                 setLoading={setLoading}
                 setError={setError}
+                setResults={setResults}
               />
               {results && <ResultsPanel results={results} />}
-            </div>
+            </>
           )}
 
           {activeTab === 'url' && (
             <div className="panel-wrapper">
-              <InputPanel
-                type="url"
-                onSubmit={setResults}
+              <UrlAnalysis
                 setLoading={setLoading}
                 setError={setError}
+                setResults={setResults}
               />
               {results && <ResultsPanel results={results} />}
             </div>

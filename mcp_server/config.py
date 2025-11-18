@@ -27,6 +27,7 @@ class Config:
     # News APIs
     GOOGLE_NEWS_API_KEY = os.getenv("GOOGLE_NEWS_API_KEY") or os.getenv("NEWS_API_KEY")
     NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+    APILAYER_API_KEY = os.getenv("APILAYER_API_KEY")
     TWITTER_BEARER_TOKEN = os.getenv("TWITTER_BEARER_TOKEN")
     REDDIT_CLIENT_ID = os.getenv("REDDIT_CLIENT_ID")
     REDDIT_CLIENT_SECRET = os.getenv("REDDIT_CLIENT_SECRET")

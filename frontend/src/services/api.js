@@ -20,37 +20,8 @@ export const fetchNews = async (params = {}) => {
     console.log('✅ Backend response:', response.data)
     return response.data.data || { articles: [] }
   } catch (error) {
-    console.error('❌ Backend error:', error.message)
-    console.warn('⚠️ Using mock data - Backend may not be running')
-    // Return mock data for demo
-    return {
-      articles: [
-        {
-          title: 'Breaking: Major Tech Announcement',
-          description: 'A leading tech company announces groundbreaking innovation...',
-          url: 'https://example.com/news1',
-          urlToImage: 'https://via.placeholder.com/400x200',
-          publishedAt: new Date().toISOString(),
-          source: { name: 'Tech News' }
-        },
-        {
-          title: 'Global Climate Summit Concludes',
-          description: 'World leaders reach historic agreement on climate action...',
-          url: 'https://example.com/news2',
-          urlToImage: 'https://via.placeholder.com/400x200',
-          publishedAt: new Date(Date.now() - 3600000).toISOString(),
-          source: { name: 'World News' }
-        },
-        {
-          title: 'AI Breakthrough in Healthcare',
-          description: 'New AI system shows promise in early disease detection...',
-          url: 'https://example.com/news3',
-          urlToImage: 'https://via.placeholder.com/400x200',
-          publishedAt: new Date(Date.now() - 7200000).toISOString(),
-          source: { name: 'Health Today' }
-        }
-      ]
-    }
+    console.error('❌ Backend error:', error.message);
+    throw error;
   }
 }
 
@@ -204,30 +175,8 @@ export const getLocationNews = async ({ lat, lng, radius_km, keyword }) => {
       summary: data.summary || `Found ${news.length} news items within ${radius_km}km radius`
     }
   } catch (error) {
-    console.error('❌ Error fetching location news:', error)
-    // Return mock data
-    return {
-      news: [
-        {
-          title: 'Local Event Happening Nearby',
-          description: 'Community gathering scheduled for this weekend...',
-          location: { lat: lat + 0.01, lng: lng + 0.01 }
-        },
-        {
-          title: 'Traffic Update in Your Area',
-          description: 'Road construction causing delays on main street...',
-          location: { lat: lat - 0.01, lng: lng - 0.01 }
-        }
-      ],
-      categorized_news: {},
-      location: {
-        lat: lat,
-        lng: lng,
-        area: 'Selected Location',
-        nearby_events: 2
-      },
-      summary: `Found 2 news items within ${radius_km}km radius`
-    }
+    console.error('❌ Error fetching location news:', error);
+    throw error;
   }
 }
 
@@ -283,10 +232,10 @@ export const searchAndSummarize = async (headline) => {
     
     if (articles.length === 0) {
       return {
-        summary: `No recent news articles found about "${headline}". This topic may not have recent coverage or the search terms may need adjustment.`,
+        summary: `No articles found for "${headline}". This could mean the topic is not covered by news sources, or it could be a sign of misinformation.`,
         related_news: [],
-        verification_score: 50,
-        verdict: 'No Data Available'
+        verification_score: 15,
+        verdict: 'Unverifiable / Potentially Fake'
       }
     }
     
@@ -323,6 +272,19 @@ export const searchAndSummarize = async (headline) => {
   }
 }
 
+// Fetch Metal Prices
+export const fetchMetalPrices = async () => {
+  try {
+    console.log('💰 Fetching metal prices...')
+    const response = await api.get('/agents/metal_prices')
+    console.log('✅ Metal prices response:', response.data)
+    return response.data.data || { gold: null, silver: null }
+  } catch (error) {
+    console.error('❌ Error fetching metal prices:', error)
+    throw error
+  }
+}
+
 export default {
   fetchNews,
   analyzeText,
@@ -330,5 +292,6 @@ export default {
   getLocationNews,
   verifyNews,
   askRootAgent,
-  searchAndSummarize
+  searchAndSummarize,
+  fetchMetalPrices
 }

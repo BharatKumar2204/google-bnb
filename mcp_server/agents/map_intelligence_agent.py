@@ -274,15 +274,168 @@ class MapIntelligenceAgent:
             "Other": []
         }
         
-        # Keywords for each category
+        # Comprehensive keywords for each category
         category_keywords = {
-            "Sports": ["cricket", "football", "soccer", "tennis", "sports", "match", "tournament", "player", "team", "game", "championship"],
-            "Politics": ["government", "minister", "election", "parliament", "political", "party", "vote", "policy", "law", "congress"],
-            "Business": ["economy", "market", "stock", "business", "company", "trade", "finance", "investment", "corporate", "industry"],
-            "Technology": ["tech", "technology", "software", "app", "digital", "ai", "computer", "internet", "startup", "innovation"],
-            "Entertainment": ["movie", "film", "actor", "music", "celebrity", "entertainment", "show", "concert", "festival", "cinema"],
-            "Health": ["health", "medical", "hospital", "doctor", "disease", "covid", "vaccine", "patient", "treatment", "medicine"],
-            "Science": ["science", "research", "study", "scientist", "discovery", "space", "climate", "environment", "energy"]
+            "Sports": [
+                # General sports terms
+                "sports", "sport", "match", "tournament", "player", "team", "game", "championship",
+                "league", "cup", "trophy", "coach", "athlete", "stadium", "score", "win", "won",
+                "defeat", "victory", "olympics", "medal", "gold", "silver", "bronze",
+                # Cricket
+                "cricket", "ipl", "test", "odi", "t20", "wicket", "batting", "bowling", "runs",
+                "century", "bcci", "icc", "world cup cricket",
+                # Football/Soccer
+                "football", "soccer", "fifa", "premier league", "la liga", "serie a", "bundesliga",
+                "champions league", "uefa", "goal", "striker", "midfielder", "defender", "goalkeeper",
+                "penalty", "offside", "transfer", "messi", "ronaldo", "neymar",
+                # Basketball
+                "basketball", "nba", "dunk", "three-pointer", "playoff", "finals", "lebron", "curry",
+                # Tennis
+                "tennis", "wimbledon", "us open", "french open", "australian open", "grand slam",
+                "serve", "ace", "federer", "nadal", "djokovic",
+                # Other sports
+                "baseball", "mlb", "hockey", "nhl", "golf", "pga", "formula 1", "f1", "racing",
+                "boxing", "ufc", "mma", "wrestling", "badminton", "volleyball", "rugby",
+                "athletics", "marathon", "swimming", "gymnastics"
+            ],
+            "Politics": [
+                # Government & Leadership
+                "government", "minister", "prime minister", "president", "vice president",
+                "cabinet", "secretary", "governor", "mayor", "chief minister", "cm", "pm",
+                # Elections & Democracy
+                "election", "vote", "voting", "ballot", "campaign", "candidate", "poll",
+                "democracy", "democratic", "republican", "congress", "senate", "house",
+                # Legislative
+                "parliament", "legislation", "bill", "law", "act", "amendment", "constitution",
+                "policy", "reform", "regulation",
+                # Political parties & ideology
+                "party", "political", "bjp", "congress", "democrat", "republican", "liberal",
+                "conservative", "left", "right", "coalition", "opposition", "ruling",
+                # International relations
+                "diplomatic", "diplomacy", "treaty", "summit", "bilateral", "multilateral",
+                "united nations", "un", "nato", "g7", "g20", "brics",
+                # Governance
+                "governance", "administration", "bureaucracy", "judiciary", "supreme court",
+                "high court", "justice", "verdict", "ruling"
+            ],
+            "Business": [
+                # Markets & Finance
+                "business", "economy", "economic", "market", "stock", "share", "equity",
+                "trading", "investor", "investment", "finance", "financial", "banking", "bank",
+                "nse", "bse", "sensex", "nifty", "dow jones", "nasdaq", "wall street",
+                # Corporate
+                "company", "corporate", "corporation", "firm", "enterprise", "industry",
+                "ceo", "cfo", "coo", "executive", "board", "director", "chairman",
+                # Business operations
+                "revenue", "profit", "loss", "earnings", "quarterly", "annual", "fiscal",
+                "merger", "acquisition", "takeover", "ipo", "listing", "valuation",
+                # Entrepreneurship
+                "startup", "entrepreneur", "venture capital", "vc", "funding", "unicorn",
+                "innovation", "disrupt",
+                # Economic indicators
+                "gdp", "inflation", "deflation", "recession", "growth", "unemployment",
+                "interest rate", "monetary", "fiscal", "budget", "deficit", "surplus",
+                # Trade & Commerce
+                "trade", "export", "import", "tariff", "commerce", "retail", "wholesale",
+                "e-commerce", "consumer", "sales", "demand", "supply"
+            ],
+            "Technology": [
+                # General tech
+                "technology", "tech", "digital", "innovation", "innovative", "disruptive",
+                # AI & ML
+                "ai", "artificial intelligence", "machine learning", "ml", "deep learning",
+                "neural network", "chatgpt", "gpt", "llm", "generative ai",
+                # Computing
+                "computer", "computing", "software", "hardware", "processor", "chip",
+                "semiconductor", "cloud", "cloud computing", "server", "data center",
+                # Internet & Web
+                "internet", "web", "online", "website", "browser", "search engine",
+                "social media", "facebook", "twitter", "instagram", "youtube", "tiktok",
+                # Mobile & Devices
+                "smartphone", "mobile", "iphone", "android", "tablet", "ipad", "wearable",
+                "smartwatch", "gadget", "device",
+                # Emerging tech
+                "blockchain", "cryptocurrency", "crypto", "bitcoin", "ethereum", "nft",
+                "metaverse", "virtual reality", "vr", "augmented reality", "ar", "mixed reality",
+                "5g", "6g", "iot", "internet of things", "quantum", "quantum computing",
+                # Companies
+                "google", "apple", "microsoft", "amazon", "meta", "facebook", "tesla",
+                "spacex", "nvidia", "intel", "amd", "samsung", "sony",
+                # Development
+                "app", "application", "coding", "programming", "developer", "software engineer",
+                "startup", "silicon valley", "tech hub",
+                # Cybersecurity
+                "cyber", "cybersecurity", "hacking", "hack", "breach", "data breach",
+                "security", "privacy", "encryption"
+            ],
+            "Entertainment": [
+                # Movies & Cinema
+                "movie", "film", "cinema", "hollywood", "bollywood", "tollywood", "kollywood",
+                "director", "producer", "actor", "actress", "star", "celebrity",
+                "box office", "release", "premiere", "screening", "trailer",
+                # Streaming & TV
+                "netflix", "amazon prime", "disney", "hbo", "streaming", "ott",
+                "series", "show", "episode", "season", "tv", "television",
+                # Music
+                "music", "song", "album", "singer", "musician", "band", "artist",
+                "concert", "tour", "performance", "live", "spotify", "apple music",
+                "grammy", "billboard",
+                # Awards & Events
+                "award", "oscar", "academy award", "golden globe", "emmy", "bafta",
+                "cannes", "festival", "red carpet",
+                # Gaming
+                "gaming", "game", "video game", "esports", "gamer", "playstation",
+                "xbox", "nintendo", "steam",
+                # General entertainment
+                "entertainment", "celebrity", "gossip", "fashion", "style", "lifestyle"
+            ],
+            "Health": [
+                # Medical
+                "health", "healthcare", "medical", "medicine", "doctor", "physician",
+                "surgeon", "nurse", "hospital", "clinic", "emergency", "icu",
+                # Diseases & Conditions
+                "disease", "illness", "condition", "syndrome", "disorder", "cancer",
+                "diabetes", "heart", "cardiac", "stroke", "alzheimer", "parkinson",
+                # COVID-19
+                "covid", "covid-19", "coronavirus", "pandemic", "epidemic", "outbreak",
+                "vaccine", "vaccination", "booster", "omicron", "delta", "variant",
+                # Treatment & Care
+                "treatment", "therapy", "cure", "medication", "drug", "prescription",
+                "surgery", "operation", "transplant", "diagnosis", "test", "screening",
+                # Public Health
+                "patient", "symptom", "infection", "virus", "bacteria", "contagious",
+                "quarantine", "isolation", "who", "cdc", "fda",
+                # Wellness
+                "mental health", "depression", "anxiety", "stress", "wellness", "wellbeing",
+                "fitness", "exercise", "nutrition", "diet", "healthy", "lifestyle",
+                # Pharma
+                "pharmaceutical", "pharma", "clinical trial", "research", "biotech"
+            ],
+            "Science": [
+                # General science
+                "science", "scientific", "research", "study", "experiment", "laboratory",
+                "lab", "scientist", "researcher", "discovery", "breakthrough", "innovation",
+                # Space & Astronomy
+                "space", "nasa", "isro", "spacex", "rocket", "satellite", "mars", "moon",
+                "planet", "solar system", "galaxy", "universe", "astronomy", "astronaut",
+                "telescope", "hubble", "james webb",
+                # Physics
+                "physics", "quantum", "particle", "atom", "nuclear", "energy", "relativity",
+                "gravity", "black hole", "cern", "hadron collider",
+                # Chemistry
+                "chemistry", "chemical", "molecule", "compound", "element", "reaction",
+                "periodic table",
+                # Biology
+                "biology", "biological", "cell", "dna", "gene", "genetic", "genome",
+                "evolution", "species", "organism", "ecosystem", "biodiversity",
+                # Earth & Environment
+                "climate", "climate change", "global warming", "environment", "environmental",
+                "ecology", "conservation", "sustainability", "carbon", "emission",
+                "renewable", "solar", "wind", "hydroelectric", "geothermal",
+                # Technology & Innovation
+                "innovation", "invention", "patent", "prototype", "engineering",
+                "nanotechnology", "biotechnology", "stem"
+            ]
         }
         
         for item in news:

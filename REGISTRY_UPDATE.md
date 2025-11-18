@@ -3,6 +3,7 @@
 ## Issue Fixed
 
 GitHub Actions was failing with:
+
 ```
 name unknown: Repository "ai-news" not found
 ```
@@ -23,12 +24,14 @@ Updated workflows to use **Container Registry (gcr.io)** instead of Artifact Reg
 ### Changes Made
 
 **Before (Artifact Registry):**
+
 ```yaml
 gcloud auth configure-docker us-central1-docker.pkg.dev
 docker build -t us-central1-docker.pkg.dev/PROJECT/ai-news/SERVICE:TAG .
 ```
 
 **After (Container Registry):**
+
 ```yaml
 gcloud auth configure-docker
 docker build -t gcr.io/PROJECT/SERVICE:TAG .
@@ -44,14 +47,17 @@ docker build -t gcr.io/PROJECT/SERVICE:TAG .
 ### API Changes
 
 **Before:**
+
 - `artifactregistry.googleapis.com`
 
 **After:**
+
 - `containerregistry.googleapis.com`
 
 ### Next Steps
 
 1. Commit and push the updated workflows:
+
    ```cmd
    git add .
    git commit -m "Switch to Container Registry (gcr.io)"
