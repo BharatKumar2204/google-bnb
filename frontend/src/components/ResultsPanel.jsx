@@ -53,6 +53,42 @@ const ResultsPanel = ({ results }) => {
               <strong>Verdict:</strong> {results.verdict}
             </div>
           )}
+          
+          {/* Source Analysis Details */}
+          {results.source_analysis && (
+            <div className="source-analysis-details">
+              <p className="source-reason">{results.source_analysis.reason}</p>
+              {results.source_analysis.source_count > 0 && (
+                <div className="source-breakdown">
+                  <span className="source-stat">
+                    📰 {results.source_analysis.source_count} total sources
+                  </span>
+                  {results.source_analysis.high_quality_sources > 0 && (
+                    <span className="source-stat high-quality">
+                      ⭐ {results.source_analysis.high_quality_sources} high-reliability
+                    </span>
+                  )}
+                  {results.source_analysis.medium_quality_sources > 0 && (
+                    <span className="source-stat medium-quality">
+                      ✓ {results.source_analysis.medium_quality_sources} medium-reliability
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Keywords Used */}
+          {results.keywords_used && results.keywords_used.length > 0 && (
+            <div className="keywords-used">
+              <strong>Search Keywords:</strong>
+              <div className="keyword-tags">
+                {results.keywords_used.map((keyword, idx) => (
+                  <span key={idx} className="keyword-tag">{keyword}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

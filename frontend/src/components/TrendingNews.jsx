@@ -8,6 +8,7 @@ const TrendingNews = () => {
   const [news, setNews] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [verificationScores, setVerificationScores] = useState({})
 
   const categories = ['all', 'world', 'technology', 'business', 'health', 'science']
 
@@ -51,13 +52,31 @@ const TrendingNews = () => {
     }
   }
 
-  const handleVerify = async (article) => {
+  const handleVerify = async (article, index) => {
     try {
-      const result = await api.verifyNews(article.title + ' ' + article.description)
-      alert(`Verification Score: ${result.score}/100\n${result.summary}`)
+      // Show loading state
+      setVerificationScores(prev => ({ ...prev, [index]: 'loading' }))
+      
+      const result = await api.verifyNews(article.title)
+      
+      // Store the score
+      setVerificationScores(prev => ({ ...prev, [index]: result.score }))
+      
+      const message = `Verification Score: ${result.score}/100\n\n` +
+                     `Verdict: ${result.summary}\n\n` +
+                     `Sources Found: ${result.sources}\n` +
+                     (result.details ? `\n${result.details}` : '')
+      alert(message)
     } catch (error) {
-      alert('Verification failed')
+      setVerificationScores(prev => ({ ...prev, [index]: 'error' }))
+      alert('Verification failed. Please try again.')
     }
+  }
+
+  const getScoreColor = (score) => {
+    if (score >= 70) return '#10b981'
+    if (score >= 40) return '#f59e0b'
+    return '#ef4444'
   }
 
   if (loading) {
@@ -124,9 +143,23 @@ const TrendingNews = () => {
               <div className="news-actions">
                 <button 
                   className="btn-verify"
-                  onClick={() => handleVerify(article)}
+                  onClick={() => handleVerify(article, index)}
+                  disabled={verificationScores[index] === 'loading'}
                 >
-                  Verify
+                  {verificationScores[index] === 'loading' ? (
+                    <>
+                      <Loader className="spinner-small" size={14} />
+                      Verifying...
+                    </>
+                  ) : verificationScores[index] && verificationScores[index] !== 'error' ? (
+                    <>
+                      <span style={{ color: getScoreColor(verificationScores[index]) }}>
+                        {verificationScores[index]}/100
+                      </span>
+                    </>
+                  ) : (
+                    'Verify'
+                  )}
                 </button>
                 <button 
                   className="btn-read"

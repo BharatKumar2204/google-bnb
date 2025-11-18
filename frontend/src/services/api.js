@@ -180,23 +180,32 @@ export const getLocationNews = async ({ lat, lng, radius_km, keyword }) => {
   }
 }
 
-// Verify News (Quick verification)
+// Verify News (Quick verification with source-based scoring)
 export const verifyNews = async (text) => {
   try {
-    const response = await api.post('/agents/truth_verification', {
-      text: text,
-      article_id: 'quick_verify'
+    console.log('🔍 Quick verification for:', text.substring(0, 50) + '...')
+    
+    // Use deep analysis for better verification
+    const response = await api.post('/agents/deep_analysis', {
+      headline: text
     })
 
+    const data = response.data.data || {}
+    
+    console.log(`✅ Verification: ${data.verification_score}/100 (${data.source_analysis?.source_count || 0} sources)`)
+
     return {
-      score: response.data.data?.score || 75,
-      summary: response.data.data?.verdict || 'Verification complete'
+      score: data.verification_score || 50,
+      summary: data.verdict || 'Verification complete',
+      sources: data.source_analysis?.source_count || 0,
+      details: data.source_analysis?.reason || ''
     }
   } catch (error) {
     console.error('Error verifying news:', error)
     return {
       score: 50,
-      summary: 'Unable to verify at this time'
+      summary: 'Unable to verify at this time',
+      sources: 0
     }
   }
 }
@@ -216,59 +225,35 @@ export const askRootAgent = async (query, context = {}) => {
   }
 }
 
-// Search and Summarize News
+// Search and Summarize News - Enhanced with Deep Analysis
 export const searchAndSummarize = async (headline) => {
   try {
-    console.log('🔍 Searching for news about:', headline)
+    console.log('🔍 Deep Analysis for:', headline)
     
-    // Step 1: Search for related news using NewsAPI
-    const searchResponse = await api.post('/agents/news_fetch', {
-      query: headline,
-      limit: 5
+    // Use the new Deep Analysis agent
+    const response = await api.post('/agents/deep_analysis', {
+      headline: headline
     })
     
-    const articles = searchResponse.data.data?.articles || []
-    console.log(`📰 Found ${articles.length} related articles`)
+    const data = response.data.data || {}
     
-    if (articles.length === 0) {
-      return {
-        summary: `No articles found for "${headline}". This could mean the topic is not covered by news sources, or it could be a sign of misinformation.`,
-        related_news: [],
-        verification_score: 15,
-        verdict: 'Unverifiable / Potentially Fake'
-      }
-    }
-    
-    // Step 2: Combine article content for AI summary
-    const combinedText = articles.map(article => 
-      `${article.title}\n${article.description || ''}`
-    ).join('\n\n')
-    
-    // Step 3: Generate AI summary using summary agent
-    const summaryResponse = await api.post('/agents/summary_context', {
-      text: combinedText,
-      title: headline
-    })
-    
-    // Step 4: Verify credibility
-    const verifyResponse = await api.post('/agents/truth_verification', {
-      text: combinedText,
-      article_id: 'search_summary'
-    })
-    
-    const summaryData = summaryResponse.data.data || {}
-    const verifyData = verifyResponse.data.data || {}
+    console.log(`✅ Deep Analysis complete:`)
+    console.log(`   Score: ${data.verification_score}/100`)
+    console.log(`   Sources: ${data.source_analysis?.source_count || 0}`)
+    console.log(`   Keywords: ${data.keywords_used?.join(', ')}`)
     
     return {
-      summary: summaryData.summary || summaryData.analysis || 'Summary generated from related news articles.',
-      related_news: articles,
-      verification_score: verifyData.score || 70,
-      verdict: verifyData.verdict || 'Based on multiple sources',
-      key_points: summaryData.key_points || []
+      summary: data.summary || 'Analysis complete',
+      related_news: data.related_news || [],
+      verification_score: data.verification_score || 50,
+      verdict: data.verdict || 'Analysis complete',
+      key_points: data.key_points || [],
+      source_analysis: data.source_analysis || {},
+      keywords_used: data.keywords_used || []
     }
   } catch (error) {
-    console.error('❌ Error searching and summarizing:', error)
-    throw new Error('Failed to search and summarize news: ' + error.message)
+    console.error('❌ Error in deep analysis:', error)
+    throw new Error('Failed to analyze news: ' + error.message)
   }
 }
 

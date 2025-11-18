@@ -9,12 +9,14 @@ This application combines multiple AI agents to provide real-time news verificat
 ## 🎯 Key Features
 
 ### 1. **Trending News Dashboard**
+
 - Real-time news feed from Google News RSS (no API key required)
 - Category filtering (All, Technology, Business, Sports, etc.)
 - Clean card-based UI with source attribution
 - Click to read full articles
 
 ### 2. **Quick AI Summary**
+
 - Enter any news headline or topic
 - Automatically searches Google News RSS for related articles
 - AI-powered summary generation using Gemini 2.5 Pro
@@ -22,6 +24,7 @@ This application combines multiple AI agents to provide real-time news verificat
 - Credibility scoring for news topics
 
 ### 3. **Text Analysis**
+
 - Paste any news text or article content
 - AI verification using Gemini 2.5 Pro
 - Credibility score (0-100%)
@@ -30,6 +33,7 @@ This application combines multiple AI agents to provide real-time news verificat
 - Source verification
 
 ### 4. **Location-Based News**
+
 - Interactive map interface (Leaflet.js)
 - Click anywhere on the map to find local news
 - Search by location name (e.g., "Chennai", "Bangalore")
@@ -50,6 +54,7 @@ This application combines multiple AI agents to provide real-time news verificat
 ## 🏗️ Architecture
 
 ### Backend (FastAPI + Python)
+
 ```
 mcp_server/
 ├── agents/
@@ -64,6 +69,7 @@ mcp_server/
 ```
 
 ### Frontend (React + Vite)
+
 ```
 frontend/
 ├── src/
@@ -83,6 +89,7 @@ frontend/
 ## 🚀 Setup & Installation
 
 ### Prerequisites
+
 - Python 3.9+
 - Node.js 16+
 - Google Cloud Project with Gemini API enabled
@@ -90,17 +97,20 @@ frontend/
 ### Backend Setup
 
 1. **Navigate to backend directory:**
+
 ```bash
 cd ai-news-app/mcp_server
 ```
 
 2. **Install Python dependencies:**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. **Configure environment variables:**
-Create/edit `.env` file:
+   Create/edit `.env` file:
+
 ```env
 # Google Gemini AI
 GEMINI_API_KEY="your-gemini-api-key"
@@ -116,6 +126,7 @@ DEBUG="True"
 ```
 
 4. **Start the backend server:**
+
 ```bash
 python run_server.py
 ```
@@ -125,22 +136,26 @@ Server will run on `http://localhost:8000`
 ### Frontend Setup
 
 1. **Navigate to frontend directory:**
+
 ```bash
 cd ai-news-app/frontend
 ```
 
 2. **Install Node dependencies:**
+
 ```bash
 npm install
 ```
 
 3. **Configure environment:**
-Create `.env` file:
+   Create `.env` file:
+
 ```env
 VITE_API_URL=http://localhost:8000
 ```
 
 4. **Start the development server:**
+
 ```bash
 npm run dev
 ```
@@ -150,12 +165,14 @@ Frontend will run on `http://localhost:5173`
 ## 📖 Usage Guide
 
 ### Trending News
+
 1. Open the application
 2. Default tab shows trending news
 3. Use category filters to narrow down topics
 4. Click any article to read the full story
 
 ### Quick AI Summary
+
 1. Click "Quick Summary" tab
 2. Enter a headline or topic (e.g., "AI breakthrough", "Climate summit")
 3. Click "Summarize with AI"
@@ -165,6 +182,7 @@ Frontend will run on `http://localhost:5173`
    - Credibility score
 
 ### Text Analysis
+
 1. Click "Text Analysis" tab
 2. Paste news text or article content
 3. Click "Analyze"
@@ -175,6 +193,7 @@ Frontend will run on `http://localhost:5173`
    - Impact analysis
 
 ### Location-Based News
+
 1. Click "Location News" tab
 2. Either:
    - Click anywhere on the map
@@ -189,6 +208,7 @@ Frontend will run on `http://localhost:5173`
 ### AI Agents
 
 #### 1. News Fetch Agent
+
 - **Purpose**: Fetches news from multiple sources
 - **Data Source**: Google News RSS (free, no API key)
 - **Features**:
@@ -198,6 +218,7 @@ Frontend will run on `http://localhost:5173`
   - RSS feed parsing with feedparser
 
 #### 2. Truth Verification Agent
+
 - **Purpose**: Verifies news authenticity
 - **AI Model**: Google Gemini 2.5 Pro
 - **Features**:
@@ -208,6 +229,7 @@ Frontend will run on `http://localhost:5173`
   - Fake URL detection
 
 #### 3. Summary Context Agent
+
 - **Purpose**: Generates intelligent summaries
 - **AI Model**: Google Gemini 2.5 Pro
 - **Features**:
@@ -216,6 +238,7 @@ Frontend will run on `http://localhost:5173`
   - Multi-article synthesis
 
 #### 4. Impact Relevance Agent
+
 - **Purpose**: Analyzes news impact
 - **AI Model**: Google Gemini 2.5 Pro
 - **Features**:
@@ -224,6 +247,7 @@ Frontend will run on `http://localhost:5173`
   - Audience analysis
 
 #### 5. Map Intelligence Agent
+
 - **Purpose**: Location-based news discovery
 - **Features**:
   - Reverse geocoding (OpenStreetMap)
@@ -235,6 +259,7 @@ Frontend will run on `http://localhost:5173`
 ### Key Technologies
 
 **Backend:**
+
 - FastAPI - Modern Python web framework
 - Google Gemini 2.5 Pro - Advanced AI model
 - feedparser - RSS feed parsing
@@ -242,6 +267,7 @@ Frontend will run on `http://localhost:5173`
 - python-dotenv - Environment management
 
 **Frontend:**
+
 - React 18 - UI framework
 - Vite - Build tool
 - Leaflet.js - Interactive maps
@@ -276,6 +302,7 @@ POST /agents/map_intelligence
 ## 🎨 UI Features
 
 ### Design Highlights
+
 - Modern gradient-based color scheme (purple/blue)
 - Responsive grid layouts
 - Smooth animations and transitions
@@ -285,6 +312,7 @@ POST /agents/map_intelligence
 - Clean, minimal interface
 
 ### User Experience
+
 - Tab-based navigation
 - Real-time loading states
 - Error handling with user-friendly messages
@@ -295,12 +323,14 @@ POST /agents/map_intelligence
 ## 🔐 Security Features
 
 1. **Fake URL Detection**
+
    - Validates URL format
    - Detects test/example domains
    - Connection verification
    - Low credibility scores for fake URLs
 
 2. **Content Verification**
+
    - AI-powered fact-checking
    - Source reliability assessment
    - Cross-reference with Google Search
@@ -314,6 +344,7 @@ POST /agents/map_intelligence
 ## 📊 Data Flow
 
 ### Quick Summary Flow
+
 ```
 User Input (Headline)
     ↓
@@ -333,6 +364,7 @@ Display Results
 ```
 
 ### Location News Flow
+
 ```
 User Clicks Map / Searches Location
     ↓
@@ -352,7 +384,9 @@ Display in Sidebar (Categorized)
 ## 🌐 Data Sources
 
 ### Primary Sources
+
 1. **Google News RSS** (Free, No API Key)
+
    - URL: `https://news.google.com/rss/search?q={query}`
    - Format: RSS/XML
    - Coverage: Global news
@@ -364,7 +398,9 @@ Display in Sidebar (Categorized)
    - No API key required
 
 ### AI Services
+
 1. **Google Gemini 2.5 Pro**
+
    - Text analysis
    - Summarization
    - Verification
@@ -380,31 +416,37 @@ Display in Sidebar (Categorized)
 ### Backend Issues
 
 **Issue: "No NewsAPI key found"**
+
 - Solution: Using Google News RSS (no key needed)
 - This is informational, not an error
 
 **Issue: "Gemini AI not available"**
+
 - Check GEMINI_API_KEY in .env
 - Verify API key is valid
 - Ensure Gemini API is enabled in Google Cloud
 
 **Issue: "Date parsing error"**
+
 - Fixed with timezone-aware datetime
 - Should not affect functionality
 
 ### Frontend Issues
 
 **Issue: "Failed to fetch"**
+
 - Ensure backend is running on port 8000
 - Check VITE_API_URL in frontend/.env
 - Verify CORS is enabled in backend
 
 **Issue: "Map not loading"**
+
 - Check internet connection (Leaflet uses CDN)
 - Verify Leaflet CSS is imported
 - Check browser console for errors
 
 **Issue: "No news found"**
+
 - Try different search terms
 - Check internet connection
 - Verify Google News RSS is accessible
@@ -412,6 +454,7 @@ Display in Sidebar (Categorized)
 ## 📝 Development Notes
 
 ### Recent Improvements
+
 1. Switched from NewsAPI to Google News RSS (free, no limits)
 2. Added fake URL detection with low credibility scores
 3. Implemented timezone-aware date filtering
@@ -422,6 +465,7 @@ Display in Sidebar (Categorized)
 8. Created clean map visualization without markers
 
 ### Future Enhancements
+
 - Add user authentication
 - Implement news bookmarking
 - Add social media integration

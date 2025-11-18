@@ -88,7 +88,7 @@ Return ONLY the keywords separated by commas, nothing else."""
         """Calculate credibility score based on number and quality of sources"""
         if not articles:
             return {
-                "score": 10,
+                "score": 5,
                 "verdict": "No Sources Found",
                 "reason": "No credible news sources found covering this topic"
             }
@@ -110,11 +110,31 @@ Return ONLY the keywords separated by commas, nothing else."""
             elif any(reliable in source_name for reliable in medium_reliability):
                 medium_quality_count += 1
         
-        # Calculate score based on:
-        # - Number of sources (more is better)
-        # - Quality of sources (high reliability sources boost score)
-        base_score = min(num_sources * 15, 60)  # Up to 60 points for quantity
-        quality_bonus = (high_quality_count * 10) + (medium_quality_count * 5)  # Up to 40 points for quality
+        # Calculate score based on number of sources:
+        # 1 source = 5%, 2 = 10%, 3 = 15%, ... 10+ = 40% base
+        if num_sources == 1:
+            base_score = 5
+        elif num_sources == 2:
+            base_score = 10
+        elif num_sources == 3:
+            base_score = 15
+        elif num_sources == 4:
+            base_score = 20
+        elif num_sources == 5:
+            base_score = 25
+        elif num_sources == 6:
+            base_score = 30
+        elif num_sources == 7:
+            base_score = 33
+        elif num_sources == 8:
+            base_score = 36
+        elif num_sources == 9:
+            base_score = 38
+        else:  # 10 or more
+            base_score = 40
+        
+        # Quality bonus: high reliability sources boost score significantly
+        quality_bonus = (high_quality_count * 15) + (medium_quality_count * 8)
         
         total_score = min(base_score + quality_bonus, 100)
         
