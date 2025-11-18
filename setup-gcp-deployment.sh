@@ -43,18 +43,13 @@ echo -e "${GREEN}✓ Project set to: $PROJECT_ID${NC}"
 echo ""
 echo -e "${YELLOW}Enabling required APIs...${NC}"
 gcloud services enable run.googleapis.com
-gcloud services enable artifactregistry.googleapis.com
+gcloud services enable containerregistry.googleapis.com
 gcloud services enable cloudbuild.googleapis.com
 echo -e "${GREEN}✓ APIs enabled${NC}"
 
-# Create Artifact Registry
+# Note: Using Container Registry (gcr.io) - no need to create repository
 echo ""
-echo -e "${YELLOW}Creating Artifact Registry repository...${NC}"
-gcloud artifacts repositories create ai-news \
-  --repository-format=docker \
-  --location=us-central1 \
-  --description="AI News App containers" || echo "Repository may already exist"
-echo -e "${GREEN}✓ Artifact Registry ready${NC}"
+echo -e "${GREEN}✓ Container Registry ready (gcr.io)${NC}"
 
 # Create Service Account
 echo ""

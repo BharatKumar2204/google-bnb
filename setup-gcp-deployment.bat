@@ -34,15 +34,13 @@ echo.
 REM Enable APIs
 echo Enabling required APIs...
 gcloud services enable run.googleapis.com
-gcloud services enable artifactregistry.googleapis.com
+gcloud services enable containerregistry.googleapis.com
 gcloud services enable cloudbuild.googleapis.com
 echo [OK] APIs enabled
 echo.
 
-REM Create Artifact Registry
-echo Creating Artifact Registry repository...
-gcloud artifacts repositories create ai-news --repository-format=docker --location=us-central1 --description="AI News App containers" 2>nul || echo Repository may already exist
-echo [OK] Artifact Registry ready
+REM Note: Using Container Registry (gcr.io) - no need to create repository
+echo [OK] Container Registry ready (gcr.io)
 echo.
 
 REM Create Service Account
