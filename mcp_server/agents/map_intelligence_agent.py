@@ -69,9 +69,34 @@ class MapIntelligenceAgent:
             self.logger.error(f"Could not get country from lat/lng: {e}")
             return "us"
 
+    def _is_advertisement(self, title: str, description: str, url: str) -> bool:
+        """Detect if content is an advertisement"""
+        text = f"{title} {description} {url}".lower()
+        
+        # Ad keywords and patterns
+        ad_patterns = [
+            # Direct ad indicators
+            "sponsored", "advertisement", "promoted", "ad:", "[ad]", "(ad)",
+            # Shopping/deals
+            "buy now", "shop now", "order now", "get yours", "limited offer",
+            "sale", "discount", "deal", "offer", "coupon", "promo",
+            # Marketing language
+            "click here", "learn more", "sign up", "subscribe now",
+            "free trial", "best price", "lowest price", "save money",
+            # Product marketing
+            "product launch", "new product", "introducing", "now available",
+            # Affiliate/referral
+            "affiliate", "referral", "partner content",
+            # Ad domains
+            "doubleclick", "googleads", "adservice", "advertising"
+        ]
+        
+        return any(pattern in text for pattern in ad_patterns)
+    
     async def _find_nearby_news(self, country: str, lat: float, lng: float, radius_km: float, keyword: str = None) -> List[Dict]:
         """Find news using NewsAPI and Google Search."""
         all_news = []
+        ads_filtered = 0
         
         # Get area name for better search
         area_name = self._get_area_name(lat, lng)
@@ -98,7 +123,7 @@ class MapIntelligenceAgent:
                 if feed.entries:
                     self.logger.info(f"✅ Found {len(feed.entries)} articles from Google News RSS")
                     
-                    for i, entry in enumerate(feed.entries[:20]):
+                    for i, entry in enumerate(feed.entries[:40]):  # Fetch more to account for filtering
                         # Extract source from title
                         title = entry.get('title', '')
                         source_name = "Google News"
@@ -108,18 +133,33 @@ class MapIntelligenceAgent:
                             title = parts[0]
                             source_name = parts[1] if len(parts) > 1 else source_name
                         
+                        description = entry.get("summary", "")[:200]
+                        url = entry.get("link")
+                        
+                        # Filter out advertisements
+                        if self._is_advertisement(title, description, url or ""):
+                            ads_filtered += 1
+                            self.logger.debug(f"🚫 Filtered ad: {title}")
+                            continue
+                        
                         all_news.append({
                             "title": title,
-                            "description": entry.get("summary", "")[:200],
+                            "description": description,
                             "location": {"lat": lat + (i * 0.01), "lng": lng + (i * 0.01)},
                             "distance_km": round(i * 2.5, 1),
                             "publishedAt": entry.get("published", datetime.now().isoformat()),
-                            "url": entry.get("link"),
+                            "url": url,
                             "source": source_name,
                             "source_type": "Google News RSS"
                         })
+                        
+                        if len(all_news) >= 20:
+                            break
                 else:
                     self.logger.warning(f"⚠️ No articles found from Google News RSS")
+                
+                if ads_filtered > 0:
+                    self.logger.info(f"🚫 Filtered {ads_filtered} advertisements")
                     
             except Exception as e:
                 self.logger.error(f"Google News RSS search failed: {str(e)}")
