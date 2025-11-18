@@ -107,7 +107,6 @@ class NewsFetchAgent:
                             "total": len(articles),
                             "category": category,
                             "source": "newsapi",
-                            "ads_filtered": ads_filtered
                         }
                     else:
                         self.logger.warning(f"NewsAPI error: {data.get('message')}")
