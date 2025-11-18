@@ -87,8 +87,10 @@ class AgentOrchestrator:
             logger.warning(f"⚠️ Gemini Master Agent failed to initialize: {str(e)}")
             self.gemini_agent = None
         
-        # Initialize 6 specialized agents (fallback)
-        logger.info("🤖 Initializing 6 specialized agents...")
+        # Initialize specialized agents
+        logger.info("🤖 Initializing specialized agents...")
+        
+        from agents.deep_analysis_agent import DeepAnalysisAgent
         
         self.agents = {
             "news_fetch": NewsFetchAgent(config, gcp_clients),
@@ -97,10 +99,11 @@ class AgentOrchestrator:
             "map_intel": MapIntelligenceAgent(config, gcp_clients),
             "media_forensics": MediaForensicsAgent(config, gcp_clients),
             "impact": ImpactRelevanceAgent(config, gcp_clients),
-            "metal_prices": MetalPricesAgent(config, gcp_clients), # Initialize new agent
+            "metal_prices": MetalPricesAgent(config, gcp_clients),
+            "deep_analysis": DeepAnalysisAgent(config, gcp_clients),
         }
         
-        logger.info("✅ All 6 agents initialized")
+        logger.info("✅ All agents initialized")
         
         # Initialize Google ADK Root Agent
         logger.info("🤖 Initializing Google ADK Root Agent...")
@@ -269,6 +272,21 @@ async def agent_metal_prices():
         result = await orchestrator.agents["metal_prices"].execute({})
         return format_response("success", result)
     except Exception as e:
+        return format_response("error", {"message": str(e)}, error=True)
+
+@app.post("/agents/deep_analysis")
+async def agent_deep_analysis(request: Request):
+    """Agent 8: Deep Analysis - Enhanced news analysis with keyword extraction and source scoring"""
+    try:
+        payload = await request.json()
+        headline = payload.get("headline", "")
+        
+        logger.info(f"🔍 Deep analysis request: {headline}")
+        
+        result = await orchestrator.agents["deep_analysis"].execute(payload)
+        return format_response("success", result)
+    except Exception as e:
+        logger.error(f"❌ Deep analysis error: {str(e)}")
         return format_response("error", {"message": str(e)}, error=True)
 
 # ═════════════════════════════════════════════════════════════

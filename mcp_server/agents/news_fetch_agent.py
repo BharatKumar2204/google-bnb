@@ -71,7 +71,7 @@ class NewsFetchAgent:
 
             params = {
                 "apiKey": api_key,
-                "pageSize": limit * 2,  # Fetch more to account for ad filtering
+                "pageSize": limit,
                 "language": "en",
                 "country": "us",  # Add country for better results
                 "category": category
@@ -89,35 +89,14 @@ class NewsFetchAgent:
                 self.logger.error(f"NewsAPI returned error: {data.get('message')}")
                 return {"articles": [], "total": 0, "category": category, "source": "error"}
             
-            raw_articles = data.get("articles", [])
-            
-            # Filter out advertisements
-            articles = []
-            ads_filtered = 0
-            
-            for article in raw_articles:
-                title = article.get("title", "")
-                description = article.get("description", "")
-                url = article.get("url", "")
-                
-                if self._is_advertisement(title, description, url):
-                    ads_filtered += 1
-                    self.logger.debug(f"🚫 Filtered ad: {title}")
-                    continue
-                
-                articles.append(article)
-                
-                if len(articles) >= limit:
-                    break
-            
-            self.logger.info(f"✅ Got {len(articles)} real articles from NewsAPI (filtered {ads_filtered} ads)")
+            articles = data.get("articles", [])
+            self.logger.info(f"✅ Got {len(articles)} real articles from NewsAPI")
             
             return {
                 "articles": articles,
-                "total": len(articles),
+                "total": data.get("totalResults", 0),
                 "category": category,
-                "source": "newsapi",
-                "ads_filtered": ads_filtered
+                "source": "newsapi"  # Mark as real data
             }
             
         except Exception as e:
@@ -187,30 +166,6 @@ class NewsFetchAgent:
                 "reason": str(e)
             }
     
-    def _is_advertisement(self, title: str, description: str, url: str) -> bool:
-        """Detect if content is an advertisement"""
-        text = f"{title} {description} {url}".lower()
-        
-        # Ad keywords and patterns
-        ad_patterns = [
-            # Direct ad indicators
-            "sponsored", "advertisement", "promoted", "ad:", "[ad]", "(ad)",
-            # Shopping/deals
-            "buy now", "shop now", "order now", "get yours", "limited offer",
-            "sale", "discount", "deal", "offer", "coupon", "promo",
-            # Marketing language
-            "click here", "learn more", "sign up", "subscribe now",
-            "free trial", "best price", "lowest price", "save money",
-            # Product marketing
-            "product launch", "new product", "introducing", "now available",
-            # Affiliate/referral
-            "affiliate", "referral", "partner content",
-            # Ad domains
-            "doubleclick", "googleads", "adservice", "advertising"
-        ]
-        
-        return any(pattern in text for pattern in ad_patterns)
-    
     async def _search_news(self, query: str, limit: int) -> Dict:
         """Search for news by query using Google News RSS (Free, No API Key)"""
         try:
@@ -233,11 +188,9 @@ class NewsFetchAgent:
                 self.logger.warning(f"⚠️ No articles found for query: {query}")
                 return {"articles": [], "total": 0, "query": query}
             
-            # Convert RSS entries to article format and filter ads
+            # Convert RSS entries to article format
             articles = []
-            ads_filtered = 0
-            
-            for entry in feed.entries[:limit * 2]:  # Fetch more to account for filtering
+            for entry in feed.entries[:limit]:
                 # Extract source from title (Google News format: "Title - Source")
                 title = entry.get('title', '')
                 source_name = "Google News"
@@ -247,36 +200,23 @@ class NewsFetchAgent:
                     title = parts[0]
                     source_name = parts[1] if len(parts) > 1 else source_name
                 
-                description = entry.get('summary', '')[:200]
-                url = entry.get('link', '')
-                
-                # Filter out advertisements
-                if self._is_advertisement(title, description, url):
-                    ads_filtered += 1
-                    self.logger.debug(f"🚫 Filtered ad: {title}")
-                    continue
-                
                 article = {
                     "title": title,
-                    "description": description,
-                    "url": url,
+                    "description": entry.get('summary', '')[:200],
+                    "url": entry.get('link', ''),
                     "urlToImage": None,  # RSS doesn't provide images
                     "publishedAt": entry.get('published', datetime.now().isoformat()),
                     "source": {"name": source_name}
                 }
                 articles.append(article)
-                
-                if len(articles) >= limit:
-                    break
             
-            self.logger.info(f"✅ Found {len(articles)} articles from Google News RSS (filtered {ads_filtered} ads)")
+            self.logger.info(f"✅ Found {len(articles)} articles from Google News RSS")
             
             return {
                 "articles": articles,
                 "total": len(articles),
                 "query": query,
-                "source": "google_news_rss",
-                "ads_filtered": ads_filtered
+                "source": "google_news_rss"
             }
             
         except Exception as e:
