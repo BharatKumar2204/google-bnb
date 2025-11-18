@@ -1,4 +1,4 @@
-# AI News Verification & Analysis Platform
+# FACT-X - AI-Powered Truth Discovery & News Intelligence
 
 A comprehensive news verification and analysis platform powered by Google Gemini 2.5 Pro AI, featuring location-based news discovery, real-time verification, and intelligent summarization.
 
